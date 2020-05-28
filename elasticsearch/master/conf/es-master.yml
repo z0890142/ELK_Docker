@@ -1,0 +1,23 @@
+# 集群名稱
+cluster.name: es-cluster
+# 节点名稱
+node.name: es-master
+# 是否可以成為master節點
+node.master: true
+# 是否允許該節點存儲數據,默認開啟
+node.data: false
+# 網路綁定
+network.host: 0.0.0.0
+# 設置對外的http port
+http.port: 9200
+# 設置節點間交互的tcp port
+transport.port: 9300
+discovery.type: single-node
+
+  - es-master
+# 支持跨域訪問
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+# 安全認證
+xpack.security.enabled: false
+#http.cors.allow-headers: "Authorization"

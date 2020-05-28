@@ -1,0 +1,6 @@
+# 服務port
+server.port: 5601
+# 服務IP
+server.host: "0.0.0.0"
+# ES
+elasticsearch.hosts: ["http://es-master:9200"]

@@ -1,0 +1,71 @@
+version: "3"
+services:
+  es-master:
+    container_name: es-master
+    hostname: es-master
+    image: elasticsearch:7.6.0
+    restart: always
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    image: kibana:7.6.0
+    restart: always
+    ports:
+      - 5601:5601
+    volumes:
+      - ./kibana/conf/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      - elasticsearch.hosts=http://es-master:9200
+    depends_on:
+      - es-master
+
+
+  filebeat:
+    # 容器名稱
+    container_name: filebeat
+    # 主机名稱
+    hostname: filebeat
+
+    image: docker.elastic.co/beats/filebeat:7.6.0
+    # 重启機制
+    restart: always
+    
+    volumes:
+      - ./filebeat/conf/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      # 映射到容器中[作为數據源]
+      - ./logs:/home/project/spring-boot-elasticsearch/logs
+      - ./filebeat/logs:/usr/share/filebeat/logs
+      - ./filebeat/data:/usr/share/filebeat/data
+      - ./filebeat/mylog:/usr/share/filebeat/mylog
+    # 將指定容器連接到當前連接，可以設置別名，避免ip方式導致的容器重啟動態改變的無法連接情況
+    links:
+      - logstash
+    # 依賴服務[可無]
+    depends_on:
+      - es-master
+
+
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    image: logstash:7.6.0
+    command: logstash -f ./conf/logstash-filebeat.conf
+    restart: always
+    volumes:
+      
+      - ./logstash/conf/logstash-filebeat.conf:/usr/share/logstash/conf/logstash-filebeat.conf
+    environment:
+      - elasticsearch.hosts=http://es-master:9200
+      # 解決logstash監控連接報錯
+      - xpack.monitoring.elasticsearch.hosts=http://es-master:9200
+    ports:
+      - 5044:5044
+    depends_on:
+      - es-master
